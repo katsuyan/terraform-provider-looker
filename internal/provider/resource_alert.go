@@ -3,10 +3,11 @@ package provider
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/devoteamgcloud/terraform-provider-looker/pkg/lookergo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"strings"
 )
 
 func resourceAlerts() *schema.Resource {
@@ -198,14 +199,16 @@ func resourceAlerts() *schema.Resource {
 				Optional:    true,
 				Description: "Whether or not the alert is public",
 			},
-			"treshold": {
+			"threshold": {
 				Type:        schema.TypeFloat,
 				Required:    true,
 				Description: "Value of the alert threshold",
 			},
 		},
 
-		Importer: nil,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 	}
 }
 
@@ -337,7 +340,7 @@ func resourceAlertsCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	if value, ok := d.GetOk("is_public"); ok {
 		alert.IsPublic = boolPtr(value.(bool))
 	}
-	if value, ok := d.GetOk("treshold"); ok {
+	if value, ok := d.GetOk("threshold"); ok {
 		alert.Threshold = value.(float64)
 	}
 	if value, ok := d.GetOk("owner_id"); ok {
@@ -429,6 +432,7 @@ func resourceAlertsRead(ctx context.Context, d *schema.ResourceData, m interface
 	d.Set("is_disabled", alert.IsDisabled)
 	d.Set("is_public", alert.IsPublic)
 	d.Set("owner_display_name", alert.OwnerDisplayName)
+	d.Set("threshold", alert.Threshold)
 	return diags
 }
 
@@ -558,7 +562,7 @@ func resourceAlertsUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	if value, ok := d.GetOk("is_public"); ok {
 		alert.IsPublic = boolPtr(value.(bool))
 	}
-	if value, ok := d.GetOk("treshold"); ok {
+	if value, ok := d.GetOk("threshold"); ok {
 		alert.Threshold = value.(float64)
 	}
 	if value, ok := d.GetOk("owner_id"); ok {

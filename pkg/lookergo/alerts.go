@@ -2,6 +2,8 @@ package lookergo
 
 import (
 	"context"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 const AlertsBasePath = "4.0/alerts"
@@ -115,7 +117,8 @@ func (s *AlertsResourceOp) Create(ctx context.Context, requestAlert *Alert) (*Al
 }
 
 func (s *AlertsResourceOp) Update(ctx context.Context, AlertId string, requestAlert *Alert) (*Alert, *Response, error) {
-	return doUpdate(ctx, s.client, AlertsBasePath, AlertId, requestAlert, new(Alert))
+	tflog.Info(ctx, "Alert", map[string]interface{}{"alert": requestAlert})
+	return doPut(ctx, s.client, AlertsBasePath, AlertId, requestAlert, new(Alert))
 }
 
 func (s *AlertsResourceOp) Delete(ctx context.Context, AlertId string) (*Response, error) {

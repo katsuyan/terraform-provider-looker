@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -168,7 +169,8 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData, p *schema.Pr
 		if code := resp.StatusCode; code >= 200 && code <= 299 {
 			tflog.Debug(ctx, "HTTP Request", map[string]interface{}{"req_url": req.URL.String(), "req_method": req.Method, "resp_status": resp.Status})
 		} else {
-			tflog.Debug(ctx, "HTTP Error", map[string]interface{}{"req_url": req.URL.String(), "req_method": req.Method, "resp_status": resp.Status, "resp_length": resp.ContentLength, "resp_headers": resp.Header})
+			body, _ := io.ReadAll(resp.Body)
+			tflog.Debug(ctx, "HTTP Error", map[string]interface{}{"req_url": req.URL.String(), "req_method": req.Method, "resp_status": resp.Status, "resp_length": resp.ContentLength, "resp_headers": resp.Header, "resp_body": string(body)})
 		}
 	}
 

@@ -5,14 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/beefsack/go-rate"
-	"github.com/google/go-querystring/query"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/clientcredentials"
 	"path"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/beefsack/go-rate"
+	"github.com/google/go-querystring/query"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
 
 	"io"
 	"io/ioutil"
@@ -740,6 +741,33 @@ func doUpdate[T any, U any](ctx context.Context, client *Client, basePath string
 	}
 
 	req, err := client.NewRequest(ctx, http.MethodPatch, path, svc)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	resp, err := client.Do(ctx, req, uSvc)
+	if err != nil {
+		return nil, resp, err
+	}
+	return uSvc, resp, err
+}
+
+func doPut[T any, U any](ctx context.Context, client *Client, basePath string, id any, svc *T, uSvc *U, pathSuffix ...string) (*U, *Response, error) {
+	var path string
+
+	switch id.(type) {
+	case int:
+		if id.(int) < 1 {
+			return nil, nil, NewArgError("id", "cannot be less than 1")
+		}
+		path = fmt.Sprintf("%s/%d%s", basePath, id.(int), strings.Join(append([]string{""}, pathSuffix...), "/"))
+	case string:
+		path = fmt.Sprintf("%s/%s%s", basePath, id.(string), strings.Join(append([]string{""}, pathSuffix...), "/"))
+	default:
+		panic("Invalid type for ID. Has to be either int or string")
+	}
+
+	req, err := client.NewRequest(ctx, http.MethodPut, path, svc)
 	if err != nil {
 		return nil, nil, err
 	}
